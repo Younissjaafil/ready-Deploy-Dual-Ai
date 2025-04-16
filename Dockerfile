@@ -1,28 +1,30 @@
 FROM python:3.10
 
-# Install system dependencies
+# 📦 Install required system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     gfortran \
     ffmpeg \
     libsndfile1 \
-    python3-distutils \
     python3-dev \
+    python3-distutils \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
+# 📁 Set working directory
 WORKDIR /app
 
-# Copy app files
+# 🚚 Copy project files
 COPY . .
 
-# Upgrade pip + prevent wheels from building from source
+# ⬆️ Upgrade pip tools
 RUN pip install --upgrade pip setuptools wheel
-RUN pip install --prefer-binary --no-cache-dir numpy==1.22.0 scipy scikit-learn
 
-# Then install TTS and everything else
+# ✅ Preinstall numpy + sklearn as binary (avoid build)
+RUN pip install numpy==1.22.0 scikit-learn==1.1.3 --only-binary=:all:
+
+# ✅ Now install everything else including TTS
 RUN pip install -r requirements.txt
 
-# Start the app
+# 🚀 Launch FastAPI app
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]

@@ -1,9 +1,9 @@
-fastapi
-uvicorn
-pydub
-torch
-diffusers
-transformers
+fastapi==0.104.1
+uvicorn==0.23.2
+pydub==0.25.1
+torch==2.0.1
+diffusers==0.24.0
+transformers==4.35.2
 TTS==0.17.3
-Pillow
-numpy
+Pillow==10.0.1
+numpy==1.23.5

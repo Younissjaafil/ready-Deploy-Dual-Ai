@@ -1,30 +1,29 @@
-FROM python:3.10
+FROM continuumio/miniconda3
 
-# 📦 Install required system dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    gfortran \
+# Create environment
+RUN conda create -n dualai python=3.10 -y
+
+# Activate conda + install deps
+SHELL ["conda", "run", "-n", "dualai", "/bin/bash", "-c"]
+
+RUN conda install -y \
+    numpy=1.22 \
+    scikit-learn \
+    pip \
     ffmpeg \
-    libsndfile1 \
-    python3-dev \
-    python3-distutils \
-    git \
-    && rm -rf /var/lib/apt/lists/*
+    && pip install \
+    fastapi==0.104.1 \
+    uvicorn==0.23.2 \
+    pydub==0.25.1 \
+    torch==2.2.0 \
+    diffusers==0.24.0 \
+    transformers==4.35.2 \
+    TTS==0.17.2 \
+    Pillow==10.0.1
 
-# 📁 Set working directory
+# Copy app
 WORKDIR /app
-
-# 🚚 Copy project files
 COPY . .
 
-# ⬆️ Upgrade pip tools
-RUN pip install --upgrade pip setuptools wheel
-
-# ✅ Preinstall numpy + sklearn as binary (avoid build)
-RUN pip install numpy==1.22.0 scikit-learn==1.1.3 --only-binary=:all:
-
-# ✅ Now install everything else including TTS
-RUN pip install -r requirements.txt
-
-# 🚀 Launch FastAPI app
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
+# Expose and run
+CMD ["conda", "run", "--no-capture-output", "-n", "dualai", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]

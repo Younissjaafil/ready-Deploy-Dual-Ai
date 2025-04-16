@@ -1,7 +1,7 @@
 fastapi==0.104.1
 uvicorn==0.23.2
 pydub==0.25.1
-torch==2.0.1
+torch==2.2.0
 diffusers==0.24.0
 transformers==4.35.2
 TTS==0.17.3

@@ -4,6 +4,6 @@ pydub==0.25.1
 torch==2.2.0
 diffusers==0.24.0
 transformers==4.35.2
-TTS==0.17.3
+TTS==0.17.2
 Pillow==10.0.1
 numpy==1.23.5

@@ -4,6 +4,6 @@ pydub
 torch
 diffusers
 transformers
-TTS
+TTS==0.17.1
 Pillow
 numpy

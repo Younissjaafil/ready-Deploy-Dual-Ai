@@ -37,8 +37,13 @@ pipe.load_lora_weights("ehristoforu/dalle-3-xl-v2", weight_name="dalle-3-xl-lora
 pipe.set_adapters("dalle")
 pipe.to(device)
 
+# with safe_globals([XttsConfig, XttsAudioConfig, XttsArgs, BaseDatasetConfig]):
+#     tts = TTS("tts_models/multilingual/multi-dataset/xtts_v2").to(device)
 with safe_globals([XttsConfig, XttsAudioConfig, XttsArgs, BaseDatasetConfig]):
-    tts = TTS("tts_models/multilingual/multi-dataset/xtts_v2").to(device)
+    tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2", gpu=torch.cuda.is_available())
+
+os.makedirs("voices", exist_ok=True)
+os.makedirs("outputs", exist_ok=True)
 
 # --- Image Generation Endpoint ---
 @app.post("/generate-image")
@@ -95,3 +100,35 @@ async def clone_voice(
     output_path = "./output.wav"
     tts.tts_to_file(text=text, speaker_wav=input_path, language=language, file_path=output_path)
     return FileResponse(output_path)
+
+
+@app.post("/record_voice")
+async def record_voice(audio: UploadFile, user_id: str = Form(...)):
+    voice_path = f"./voices/{user_id}.wav"
+    audio_bytes = await audio.read()
+    temp_path = f"./voices/temp_input.wav"
+    with open(temp_path, "wb") as f:
+        f.write(audio_bytes)
+    AudioSegment.from_file(temp_path).export(voice_path, format="wav")
+    os.remove(temp_path)
+    return {"message": f"Voice saved for ID: {user_id}"}
+
+ 
+
+@app.post("/speak_caption")
+async def generate_voice(user_id: str = Form(...), text: str = Form(...)):
+    voice_path = f"./voices/{user_id}.wav"
+    if not os.path.exists(voice_path):
+        return {"error": "Voice sample not found."}
+
+    output_path = f"./outputs/{user_id}_{abs(hash(text)) % 100000}_out.wav"
+    tts.tts_to_file(
+        text=text,
+        speaker_wav=voice_path,
+        language="en",
+        file_path=output_path
+    )
+
+    return FileResponse(output_path, media_type="audio/wav", filename=os.path.basename(output_path), headers={
+        "Content-Disposition": "inline"
+    })

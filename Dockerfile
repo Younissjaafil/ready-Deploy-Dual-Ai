@@ -1,40 +1,49 @@
-# # FROM ghcr.io/coqui-ai/tts-cpu:latest
-
-# # WORKDIR /app
-# # COPY . .
-
-# # RUN pip install --no-cache-dir fastapi uvicorn pydub Pillow
-
-# # EXPOSE 7860
-# # CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
-# FROM ghcr.io/coqui-ai/tts-cpu:latest
+# FROM python:3.10-slim
 
 # WORKDIR /app
+
+# # System dependencies
+# RUN apt-get update && apt-get install -y \
+#     ffmpeg \
+#     libsndfile1 \
+#     && rm -rf /var/lib/apt/lists/*
+
+# # Python dependencies
+# COPY requirements.txt .
+# RUN pip install --upgrade pip
+# RUN pip install -r requirements.txt
+
+# # App code
 # COPY . .
 
-# # 1) Add python-multipart so Form()/File() works
-# # 2) Install uvicorn[standard] for a better production server
-# RUN pip install --no-cache-dir \
-#     fastapi \
-#     uvicorn[standard] \
-#     python-multipart \
-#     pydub
+# # Make directories that may be needed
+# RUN mkdir -p voices uploads outputs
 
-# EXPOSE 7860
+# # Set port from environment or default to 8000
+# ENV PORT=8000
+# EXPOSE 8000
 
-# # Run your main.py so it binds to 0.0.0.0:$PORT automatically
-# CMD ["python", "main.py"]
-FROM ghcr.io/coqui-ai/tts-cpu:latest
+# # Command to run the app
+# CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Dockerfile
+
+FROM python:3.10-slim
 
 WORKDIR /app
-COPY . .
 
-RUN pip install --no-cache-dir \
-    fastapi \
-    uvicorn[standard] \
-    python-multipart \
-    pydub \
-    Pillow
+# System dependencies
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    libsndfile1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Python dependencies
+COPY requirements.txt .
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
+
+# App code
+COPY . .
 
 EXPOSE 8000
 
